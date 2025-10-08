@@ -1,0 +1,15 @@
+# Build files
+/build/
+CMakeCache.txt
+CMakeFiles/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Binaries
+*.exe
+*.out
+*.app
