@@ -1,15 +1,17 @@
-# Build files
+# Ignore build artifacts
 /build/
-CMakeCache.txt
 CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
 
-# VS Code
-.vscode/
 
-# macOS
 .DS_Store
+.vscode/
+.idea/
 
-# Binaries
+
 *.exe
 *.out
-*.app
+*.o
+*.obj
