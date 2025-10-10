@@ -1,1 +1,20 @@
+
 src/glad.c linguist-vendored
+
+# Vendor or external dependencies
+vendor/* linguist-vendored
+external/* linguist-vendored
+third_party/* linguist-vendored
+
+
+build/* linguist-generated
+CMakeFiles/* linguist-generated
+*.cmake linguist-generated
+*.o linguist-generated
+*.obj linguist-generated
+*.a linguist-generated
+*.so linguist-generated
+*.dll linguist-generated
+*.dylib linguist-generated
+
+*.md linguist-documentation
