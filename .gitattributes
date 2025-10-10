@@ -1,4 +1,4 @@
-src/glad.c linguist-vendored
+vendor/* linguist-vendored
 vendor/* linguist-vendored
 external/* linguist-vendored
 third_party/* linguist-vendored

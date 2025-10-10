@@ -16,7 +16,7 @@ add_executable(${PROJECT_NAME}
     src/main.cpp
     src/solver.cpp
     src/renderer.cpp
-    src/glad.c        
+    vendor/glad.c        
 )
 
 target_link_libraries(${PROJECT_NAME}
