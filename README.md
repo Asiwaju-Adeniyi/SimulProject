@@ -1,13 +1,13 @@
 # N-Body Gravitational Simulation (Earth–Moon–Sun Model)
 
 A C++ and OpenGL–based **N-body simulation** using the **Velocity Verlet integration** method.  
-This project is part of a collaborative research effort inspired by the work of **Dr. John L. Gustafson**, a pioneer in **High-Performance Computing (HPC)** and numerical accuracy.
+This project is part of a collaborative research effort inspired by the work of **Prof. John L. Gustafson**, a pioneer in **High-Performance Computing (HPC)** and numerical accuracy.
 
 ---
 
-## About Dr. John L. Gustafson
+## About Prof. John L. Gustafson
 
-**Dr. John L. Gustafson** is an American computer scientist known for groundbreaking contributions in **parallel computing**, **performance modeling**, and **computer arithmetic**.
+Prof. John L. Gustafson** is an American computer scientist known for groundbreaking contributions in **parallel computing**, **performance modeling**, and **computer arithmetic**.
 
 ### Key Achievements:
 - **Invented Gustafson’s Law** — a fundamental principle in parallel computing that redefined scalability analysis.
@@ -19,7 +19,7 @@ This project is part of a collaborative research effort inspired by the work of 
 - **Recipient of the IEEE Computer Society Golden Core Award and multiple R&D 100 Awards.**
 - **Holds degrees from Caltech** (B.S., Applied Mathematics) **and Iowa State University** (M.S., Ph.D., Applied Mathematics).
 
-Dr. Gustafson’s ongoing research explores **b-posits** — a bounded variant of the posit number system — and their potential for improving numerical stability in large-scale scientific computations.
+Prof. Gustafson’s ongoing research explores **b-posits** — a bounded variant of the posit number system — and their potential for improving numerical stability in large-scale scientific computations.
 
 ---
 
