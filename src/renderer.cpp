@@ -77,17 +77,11 @@ void Renderer::init() {
 
     
     glEnable(GL_PROGRAM_POINT_SIZE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glViewport(0, 0, m_width, m_height);
     float pointSize;
-for (size_t i = 0; i < pts.size(); ++i) {
-    if (i == 0)      pointSize = 20.0f;   // Sun
-    else if (i == 1) pointSize = 10.0f;   // Earth
-    else             pointSize = 6.0f;    // Moon
-    glPointSize(pointSize);
 
-    GLint colorLoc = glGetUniformLocation(m_shaderProgram, "uColor");
-    glUniform3f(colorLoc, cols[i].r, cols[i].g, cols[i].b);
-    glDrawArrays(GL_POINTS, (GLint)i, 1);
-}
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -182,12 +176,17 @@ void Renderer::draw(const std::vector<Body>& solverBodies) {
     glBindBuffer(GL_ARRAY_BUFFER, m_vboPoints);
     glBufferData(GL_ARRAY_BUFFER, pts.size() * sizeof(glm::vec2), pts.data(), GL_DYNAMIC_DRAW);
 
-   
-    for (size_t i = 0; i < pts.size(); ++i) {
-        GLint colorLoc = glGetUniformLocation(m_shaderProgram, "uColor");
-        glUniform3f(colorLoc, cols[i].r, cols[i].g, cols[i].b);
-        glDrawArrays(GL_POINTS, (GLint)i, 1);
-    }
+for (size_t i = 0; i < pts.size(); ++i) {
+    float pointSize;
+    if (i == 0)      pointSize = 20.0f;   // Sun
+    else if (i == 1) pointSize = 10.0f;   // Earth
+    else             pointSize = 6.0f;    // Moon
+    glPointSize(pointSize);
+
+    GLint colorLoc = glGetUniformLocation(m_shaderProgram, "uColor");
+    glUniform3f(colorLoc, cols[i].r, cols[i].g, cols[i].b);
+    glDrawArrays(GL_POINTS, (GLint)i, 1);
+}
 
     glBindVertexArray(0);
     glUseProgram(0);

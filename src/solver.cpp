@@ -20,7 +20,7 @@ void Solver::computeAccelerations() {
             if (i == j) continue;
 
             glm::dvec3 r = bodies[j].position - bodies[i].position;
-            double distSqr = glm::dot(r, r) + 1e-9; // avoid divide-by-zero
+            double distSqr = glm::dot(r, r); 
             double dist = sqrt(distSqr);
             glm::dvec3 forceDir = r / dist;
 

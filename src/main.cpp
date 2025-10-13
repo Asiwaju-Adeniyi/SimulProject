@@ -47,7 +47,7 @@ int main() {
     // Renderer
     Renderer renderer(width, height);
     renderer.init();
-    renderer.setScale(5e8);  
+    renderer.setScale(2e8);  
 
     // Timing
     double lastTime = glfwGetTime();
@@ -65,10 +65,14 @@ int main() {
             solver.update();
         }
 
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+        renderer.setScale(2e8); 
+          } else {
+            renderer.setScale(1.5e9); // full Solar view
+}
         
         renderer.draw(solver.getBodies());
 
-       
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
