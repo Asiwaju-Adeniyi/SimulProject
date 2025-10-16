@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <physics/solver.hpp>
 
 
 static GLuint compileShader(GLenum type, const char* src) {
@@ -124,16 +125,24 @@ static glm::vec2 worldToNDC(const glm::dvec2& worldPos, double scaleMetersPerUni
 
 void Renderer::draw(const std::vector<Body>& solverBodies) {
     if (solverBodies.empty()) return;
-    
+
+    // Compute barycenter (assuming solver updated it)
+    glm::dvec3 bary = {0.0, 0.0, 0.0};
+    double totalMass = 0.0;
+    for (const auto& b : solverBodies) {
+        bary += b.mass * b.position;
+        totalMass += b.mass;
+    }
+    bary /= totalMass;
+
     ensureTrailBuffers(solverBodies.size());
 
     for (size_t i = 0; i < solverBodies.size(); ++i) {
-        glm::dvec2 wp = { solverBodies[i].position.x, solverBodies[i].position.y };
-        glm::vec2 ndc = worldToNDC(wp, m_scaleMetersPerUnit, m_width, m_height);
-        auto &trail = m_trails[i];
-        trail.emplace_back(ndc);
-        if (trail.size() > m_maxTrailLength) trail.erase(trail.begin());
-    }
+        glm::dvec2 wp = {
+            solverBodies[i].position.x - bary.x,
+            solverBodies[i].position.y - bary.y
+        };
+
 
 
     glClearColor(0.02f, 0.02f, 0.05f, 1.0f);
@@ -178,9 +187,9 @@ void Renderer::draw(const std::vector<Body>& solverBodies) {
 
 for (size_t i = 0; i < pts.size(); ++i) {
     float pointSize;
-    if (i == 0)      pointSize = 20.0f;   // Sun
-    else if (i == 1) pointSize = 10.0f;   // Earth
-    else             pointSize = 6.0f;    // Moon
+    if (i == 0)      pointSize = 40.0f;   // Sun
+    else if (i == 1) pointSize = 25.0f;   // Earth
+    else             pointSize = 15.0f;    // Moon
     glPointSize(pointSize);
 
     GLint colorLoc = glGetUniformLocation(m_shaderProgram, "uColor");
@@ -190,4 +199,6 @@ for (size_t i = 0; i < pts.size(); ++i) {
 
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
 }
