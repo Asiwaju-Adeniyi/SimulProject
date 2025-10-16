@@ -1,4 +1,6 @@
 // src/main.cpp
+#define GLM_ENABLE_EXPERIMENTAL  
+
 #include <iostream>
 #include <vector>
 #include <glad/glad.h>
@@ -7,6 +9,8 @@
 #include "physics/body.hpp"
 #include "utils/constants.hpp"
 #include "render/renderer.hpp"
+#include <glm/gtx/string_cast.hpp>
+
 
 int main() {
     if (!glfwInit()) return -1;
@@ -34,49 +38,75 @@ int main() {
     solver.addBody(sun);
 
     // Earth
-    Body earth; earth.mass = Constants::massEarth;
-    earth.position = {Constants::earthOrbitRadius / 100.0, 0, 0}; earth.velocity = {0,Constants::earthOrbitVelocity,0};
-    earth.color = {0.2f,0.4f,1.0f}; solver.addBody(earth);
+    double scale = 1.0 / 100.0;
+    Body earth;
+    earth.mass = Constants::massEarth;
+    earth.position = {Constants::earthOrbitRadius * scale, 0, 0};
+    earth.velocity = {0, Constants::earthOrbitVelocity * std::sqrt(scale), 0};
+    earth.color = {0.2f, 0.4f, 1.0f};
+    solver.addBody(earth);
+    
+   
 
-    // Moon
-    Body moon; moon.mass = Constants::massMoon;
-    moon.position = {earth.position.x + Constants::moonOrbitRadius / 100.0, 0, 0};
-    moon.velocity = {0, Constants::earthOrbitVelocity + Constants::moonOrbitVelocity, 0};
-    moon.color = {0.6f,0.6f,0.6f}; solver.addBody(moon);
+    // // Moon
+    // Body moon; moon.mass = Constants::massMoon;
+    // moon.position = {earth.position.x + Constants::moonOrbitRadius / 100.0, 0, 0};
+    // moon.velocity = {0, Constants::earthOrbitVelocity + Constants::moonOrbitVelocity, 0};
+    // moon.color = {0.6f,0.6f,0.6f}; solver.addBody(moon);
 
     // Renderer
     Renderer renderer(width, height);
     renderer.init();
-    renderer.setScale(2e8);  
+    renderer.setScale(3.0e11);  
 
     // Timing
     double lastTime = glfwGetTime();
     const double physicsStepsPerFrame = 1.0; 
-   
 
-    while (!glfwWindowShouldClose(window)) {
-        double now = glfwGetTime();
-        double dtSec = now - lastTime;
-        lastTime = now;
-
-    
-        int steps = (int)physicsStepsPerFrame;
-        for (int s = 0; s < steps; ++s) {
-            solver.update();
+    glm::dvec3 totalMom(0.0);
+    double totalMass = 0.0;
+       for (auto& b : solver.getBodies()) {
+    totalMom += b.mass * b.velocity;
+    totalMass += b.mass;
+     }
+        glm::dvec3 vCOM = totalMom / totalMass;
+        for (auto& b : solver.getBodies()) {
+        b.velocity -= vCOM; 
         }
 
-    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-        renderer.setScale(2e8); 
-          } else {
-            renderer.setScale(1.5e9); // full Solar view
-}
-        
-        renderer.draw(solver.getBodies());
+int frameCount = 0; 
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+while (!glfwWindowShouldClose(window)) {
+    double now = glfwGetTime();
+    double dtSec = now - lastTime;
+    lastTime = now;
+
+    int steps = (int)physicsStepsPerFrame;
+    for (int s = 0; s < steps; ++s) {
+        solver.update();
     }
 
-    glfwTerminate();
-    return 0;
+    // 🔹 Log energy and momentum every 500 frames
+    frameCount++;
+    if (frameCount % 500 == 0) {
+        std::cout << "Energy: " << solver.totalEnergy()
+                  << " | Momentum: " << glm::to_string(solver.totalMomentum())
+                  << std::endl;
+    }
+
+    // 🔹 Zoom toggle (Z key)
+    if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+        renderer.setScale(2e8);   // close-up Earth–Moon
+    } else {
+        renderer.setScale(1.5e9); // full Solar view
+    }
+
+    renderer.draw(solver.getBodies());
+
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+}
+
+glfwTerminate();
+return 0;
 }
