@@ -12,11 +12,14 @@ include_directories(include)
 include_directories(${OPENGL_INCLUDE_DIRS})
 include_directories(${GLFW_INCLUDE_DIRS})
 
+
+add_compile_definitions(PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+
 add_executable(${PROJECT_NAME}
     src/main.cpp
     src/solver.cpp
     src/renderer.cpp
-    vendor/glad.c        
+    vendor/glad.c
 )
 
 target_link_libraries(${PROJECT_NAME}

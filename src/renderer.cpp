@@ -64,7 +64,18 @@ Renderer::~Renderer() {
 }
 
 void Renderer::init() {
-    m_shaderProgram = loadShaderProgramFromFiles("shaders/orbit.vert", "shaders/orbit.frag");
+
+std::string base = std::string(PROJECT_SOURCE_DIR) + "/src/shaders/";
+m_shaderProgram = loadShaderProgramFromFiles(
+    (base + "orbit.vert").c_str(),
+    (base + "orbit.frag").c_str()
+);
+
+
+if (m_shaderProgram == 0) {
+    std::cerr << "Failed to load shader program. Check shader paths and compilation logs.\n";
+}
+
     glGenVertexArrays(1, &m_vaoPoints);
     glGenBuffers(1, &m_vboPoints);
 
@@ -126,79 +137,91 @@ static glm::vec2 worldToNDC(const glm::dvec2& worldPos, double scaleMetersPerUni
 void Renderer::draw(const std::vector<Body>& solverBodies) {
     if (solverBodies.empty()) return;
 
-    // Compute barycenter (assuming solver updated it)
-    glm::dvec3 bary = {0.0, 0.0, 0.0};
+    // Clear once per frame
+    glClearColor(0.02f, 0.02f, 0.05f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Use shader program
+    if (m_shaderProgram == 0) {
+        std::cerr << "[Renderer] shader program is 0 — shader failed to load/compile/link\n";
+        return;
+    }
+    glUseProgram(m_shaderProgram);
+
+    // Compute barycenter
+    glm::dvec3 bary(0.0);
     double totalMass = 0.0;
     for (const auto& b : solverBodies) {
         bary += b.mass * b.position;
         totalMass += b.mass;
     }
-    bary /= totalMass;
+    if (totalMass != 0.0) bary /= totalMass;
 
+    // Ensure we have trail VBOs for all bodies
     ensureTrailBuffers(solverBodies.size());
 
-    for (size_t i = 0; i < solverBodies.size(); ++i) {
-        glm::dvec2 wp = {
-            solverBodies[i].position.x - bary.x,
-            solverBodies[i].position.y - bary.y
-        };
+    // Debug: print NDC coords of first few bodies
+    for (size_t i = 0; i < std::min<size_t>(solverBodies.size(), 3); ++i) {
+        auto ndc = worldToNDC({solverBodies[i].position.x, solverBodies[i].position.y},
+                              m_scaleMetersPerUnit, m_width, m_height);
+        std::cerr << "[Renderer] body " << i << " NDC = (" << ndc.x << ", " << ndc.y << ")\n";
+    }
 
+    // Bind VAO (store attribute pointers here)
+    glBindVertexArray(m_vaoPoints);
 
-
-    glClearColor(0.02f, 0.02f, 0.05f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glUseProgram(m_shaderProgram);
-
- 
+    // Draw trails (if any)
     for (size_t i = 0; i < solverBodies.size(); ++i) {
         const auto &trail = m_trails[i];
         if (trail.size() < 2) continue;
-      
+
         uploadPoints(trail, m_trailVBOs[i]);
-  
+
         glBindBuffer(GL_ARRAY_BUFFER, m_trailVBOs[i]);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
-     
         GLint colorLoc = glGetUniformLocation(m_shaderProgram, "uColor");
         const auto &c = solverBodies[i].color;
-        glUniform3f(colorLoc, c.r, c.g, c.b);
+        if (colorLoc >= 0) glUniform3f(colorLoc, c.r, c.g, c.b);
 
-       
         glDrawArrays(GL_LINE_STRIP, 0, (GLsizei)trail.size());
     }
 
-   
+    // Prepare point positions and colors
     std::vector<glm::vec2> pts;
     std::vector<glm::vec3> cols;
     pts.reserve(solverBodies.size());
     cols.reserve(solverBodies.size());
     for (const auto &b : solverBodies) {
-        pts.emplace_back(worldToNDC({b.position.x, b.position.y}, m_scaleMetersPerUnit, m_width, m_height));
+        // convert world to NDC with barycenter offset
+        glm::dvec2 worldPos = { b.position.x - bary.x, b.position.y - bary.y };
+        pts.emplace_back(worldToNDC(worldPos, m_scaleMetersPerUnit, m_width, m_height));
         cols.emplace_back(b.color);
     }
 
-
-    glBindVertexArray(m_vaoPoints);
+    // Upload points VBO and set attribute pointer (VAO is bound)
     glBindBuffer(GL_ARRAY_BUFFER, m_vboPoints);
     glBufferData(GL_ARRAY_BUFFER, pts.size() * sizeof(glm::vec2), pts.data(), GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
-for (size_t i = 0; i < pts.size(); ++i) {
-    float pointSize;
-    if (i == 0)      pointSize = 40.0f;   // Sun
-    else if (i == 1) pointSize = 25.0f;   // Earth
-    else             pointSize = 15.0f;    // Moon
-    glPointSize(pointSize);
+    // Draw each point with its color
+    for (size_t i = 0; i < pts.size(); ++i) {
+        float pointSize;
+        if (i == 0)      pointSize = 40.0f;   // Sun
+        else if (i == 1) pointSize = 25.0f;   // Earth
+        else             pointSize = 15.0f;   // Moon
+        glPointSize(pointSize);
 
-    GLint colorLoc = glGetUniformLocation(m_shaderProgram, "uColor");
-    glUniform3f(colorLoc, cols[i].r, cols[i].g, cols[i].b);
-    glDrawArrays(GL_POINTS, (GLint)i, 1);
-}
+        GLint colorLoc = glGetUniformLocation(m_shaderProgram, "uColor");
+        if (colorLoc >= 0) glUniform3f(colorLoc, cols[i].r, cols[i].g, cols[i].b);
 
+        // draw the i-th vertex
+        glDrawArrays(GL_POINTS, (GLint)i, 1);
+    }
+
+    // Unbind
     glBindVertexArray(0);
     glUseProgram(0);
-}
-
 }

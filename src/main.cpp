@@ -30,7 +30,7 @@ int main() {
     }
 
 
-    Solver solver(8640.0);
+    Solver solver(3600.0);
 
     // Sun
     Body sun; sun.mass = Constants::massSun;
@@ -38,26 +38,32 @@ int main() {
     solver.addBody(sun);
 
     // Earth
-    double scale = 1.0 / 100.0;
+
     Body earth;
     earth.mass = Constants::massEarth;
-    earth.position = {Constants::earthOrbitRadius * scale, 0, 0};
-    earth.velocity = {0, Constants::earthOrbitVelocity * std::sqrt(scale), 0};
+    earth.position = {Constants::earthOrbitRadius, 0, 0};
+    earth.velocity = {0, Constants::earthOrbitVelocity, 0};
     earth.color = {0.2f, 0.4f, 1.0f};
     solver.addBody(earth);
     
    
 
-    // // Moon
-    // Body moon; moon.mass = Constants::massMoon;
-    // moon.position = {earth.position.x + Constants::moonOrbitRadius / 100.0, 0, 0};
-    // moon.velocity = {0, Constants::earthOrbitVelocity + Constants::moonOrbitVelocity, 0};
-    // moon.color = {0.6f,0.6f,0.6f}; solver.addBody(moon);
+    // Moon
+    Body moon;
+    moon.mass = Constants::massMoon;
+    moon.position = {earth.position.x + Constants::moonOrbitRadius, 0, 0};
+    moon.velocity = {0, Constants::earthOrbitVelocity + Constants::moonOrbitVelocity, 0};
+    moon.color = {0.6f, 0.6f, 0.6f};
+    solver.addBody(moon);
+
+
+    solver.computeAccelerations();   // Initialize accelerations
+
 
     // Renderer
     Renderer renderer(width, height);
     renderer.init();
-    renderer.setScale(3.0e11);  
+    renderer.setScale(5.0e11);  
 
     // Timing
     double lastTime = glfwGetTime();

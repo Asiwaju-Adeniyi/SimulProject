@@ -7,6 +7,8 @@ class Solver {
 public:
     Solver(double timestep);
 
+    void computeAccelerations();
+
     void addBody(const Body& body);
     void update();
 
@@ -22,5 +24,5 @@ private:
     double dt;
     std::vector<Body> bodies;
 
-    void computeAccelerations();
+   
 };
