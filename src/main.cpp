@@ -43,7 +43,7 @@ int main() {
     earth.mass = Constants::massEarth;
     earth.position = {Constants::earthOrbitRadius, 0, 0};
     earth.velocity = {0, Constants::earthOrbitVelocity, 0};
-    earth.color = {0.2f, 0.4f, 1.0f};
+    earth.color = {0.1f, 0.45f, 0.95f};
     solver.addBody(earth);
     
    
@@ -53,7 +53,7 @@ int main() {
     moon.mass = Constants::massMoon;
     moon.position = {earth.position.x + Constants::moonOrbitRadius, 0, 0};
     moon.velocity = {0, Constants::earthOrbitVelocity + Constants::moonOrbitVelocity, 0};
-    moon.color = {0.6f, 0.6f, 0.6f};
+    moon.color  = {1.0f, 1.0f, 1.0f};
     solver.addBody(moon);
 
 
@@ -63,7 +63,7 @@ int main() {
     // Renderer
     Renderer renderer(width, height);
     renderer.init();
-    renderer.setScale(5.0e11);  
+    renderer.setScale(5.0e8);  
 
     // Timing
     double lastTime = glfwGetTime();
